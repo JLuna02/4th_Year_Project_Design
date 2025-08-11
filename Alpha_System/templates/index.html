@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Feed For Research</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div id="welcomeGuide" class="modal">
+        <div class="modal-content">
+            <h2>Welcome to Video Feed Monitor!</h2>
+            <ul>
+                <li>Home: View camera status and system overview</li>
+                <li>Live Feed: Monitor real-time footage and behavior analysis</li>
+                <li>Settings: Customize feed names and system preferences</li>
+            </ul>
+            <button onclick="closeGuide()">Got it!</button>
+        </div>
+    </div>
+    <header id="pageHeader">
+        <h1>VIDEO FEED</h1>
+    </header>
+
+    <nav>
+        <div class="tooltip">
+            <a href="#" onclick="showContent('home')">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <span class="tooltiptext">View system overview and camera status</span>
+        </div>
+        <div class="tooltip">
+            <a href="#" onclick="showContent('liveFeed1')">
+                <i class="fas fa-video"></i> Live Feed 1
+            </a>
+            <span class="tooltiptext">Monitor real-time camera feed and behavior analysis</span>
+        </div>
+        <div class="tooltip">
+            <a href="#" onclick="showContent('liveFeed2')">
+                <i class="fas fa-video"></i> Live Feed 2
+            </a>
+            <span class="tooltiptext">View secondary camera feed</span>
+        </div>
+        <div class="tooltip">
+            <a href="#" onclick="showContent('settings')">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+            <span class="tooltiptext">Customize system preferences</span>
+        </div>
+    </nav>
+
+    <main>
+        <div id="home" class="content-section active">
+            <h2>Home</h2>
+            <div class="chart-container">
+                <h3>Camera Status</h3>
+                <div id="cameraStatus"></div>
+            </div>
+        </div>
+
+        <div id="settings" class="content-section">
+            <h2>Settings</h2>
+            <div class="chart-container">
+                <p>Modify live feed names and add new sections.</p>
+                <input type="text" id="feed1Name" placeholder="Live Feed 1 Name">
+                <button onclick="updateFeedName('liveFeed1', 'feed1Name')">Update</button>
+                <br>
+                <input type="text" id="feed2Name" placeholder="Live Feed 2 Name">
+                <button onclick="updateFeedName('liveFeed2', 'feed2Name')">Update</button>
+                <br>
+                <input type="text" id="newSectionName" placeholder="New Section Name">
+                <button onclick="addNewSection()">Add Section</button>
+                <div id="dynamicSections"></div>
+            </div>
+        </div>
+
+        <div id="liveFeed1" class="content-section">
+            <h2>Live Feed 1</h2>
+            <div class="video-container">
+                <img src="{{ url_for('video_feed') }}" width="100%" height="100%">
+            </div>
+            <button class="generate-table-btn" onclick="generateTable('feed1Table')">Generate Behavior Report</button>
+            <div id="feed1Table" class="table-container"></div>
+        </div>
+
+        <div id="liveFeed2" class="content-section">
+            <h2>Live Feed 2</h2>
+            <div class="video-container">
+                <img src="{{ url_for('video_feed') }}" width="100%" height="100%">
+            </div>
+            <button class="generate-table-btn" onclick="generateTable('feed2Table')">Generate Behavior Report</button>
+            <div id="feed2Table" class="table-container"></div>
+        </div>
+        
+        <div class="qr-container">
+            <h3>QR Code Scanner Results</h3>
+            <div id="qr-result">
+                <p>Status: <span id="scan-status">Scanning...</span></p>
+                <p>Last Scanned Data: <span id="qr-content">None</span></p>
+                <p>Timestamp: <span id="scan-time">-</span></p>
+            </div>
+        </div>
+    
+
+</div>
+    </main>
+
+    <footer>
+        <p>Dee Lishus</p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    // Show welcome guide on first visit
+document.addEventListener('DOMContentLoaded', function() {
+    if (!localStorage.getItem('welcomeShown')) {
+        document.getElementById('welcomeGuide').style.display = 'block';
+        localStorage.setItem('welcomeShown', 'true');
+    }
+});
+
+function closeGuide() {
+    document.getElementById('welcomeGuide').style.display = 'none';
+}
+    let socket = io();
+    
+    // QR Code Detection
+    socket.on('qr_detected', function(data) {
+        document.getElementById('scan-status').textContent = 'QR Code Found!';
+        document.getElementById('qr-content').textContent = data.data;
+        document.getElementById('scan-time').textContent = new Date().toLocaleString();
+    });
+
+    // Mock Database
+    const mockDatabase = {
+        feed1: [
+            {
+                time: "09:30:00",
+                date: "2024-01-20",
+                behavior: "Standing",
+                location: "Near entrance",
+                duration: "5 minutes"
+            },
+            {
+                time: "09:35:00",
+                date: "2024-01-20",
+                behavior: "Sitting",
+                location: "Table 3",
+                duration: "15 minutes"
+            },
+            {
+                time: "09:50:00",
+                date: "2024-01-20",
+                behavior: "Walking",
+                location: "Center",
+                duration: "2 minutes"
+            }
+        ]
+    };
+
+    function showContent(sectionId) {
+        const sections = document.querySelectorAll('.content-section');
+        sections.forEach(section => section.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+    }
+
+    function updateFeedName(feedId, inputId) {
+        const newName = document.getElementById(inputId).value;
+        if (newName) {
+            document.getElementById(feedId).querySelector('h2').innerText = newName;
+            document.getElementById(feedId + 'Btn').innerText = newName;
+        }
+    }
+
+    function addNewSection() {
+        const newSectionName = document.getElementById('newSectionName').value;
+        if (newSectionName) {
+            const newSectionId = newSectionName.replace(/\s+/g, '');
+            
+            const newSection = document.createElement('div');
+            newSection.classList.add('content-section');
+            newSection.id = newSectionId;
+            newSection.innerHTML = `<h2>${newSectionName}</h2><button onclick="removeSection('${newSectionId}')">Delete</button>`;
+            document.querySelector('main').appendChild(newSection);
+
+            const newButton = document.createElement('button');
+            newButton.innerText = newSectionName;
+            newButton.onclick = function() { showContent(newSectionId); };
+            document.getElementById('sidePanel').insertBefore(newButton, document.querySelector('#sidePanel button:last-child'));
+
+            const settingsSection = document.createElement('div');
+            settingsSection.innerHTML = `<p>${newSectionName} <button onclick="removeSection('${newSectionId}')">Delete</button></p>`;
+            document.getElementById('dynamicSections').appendChild(settingsSection);
+        }
+    }
+
+    function removeSection(sectionId) {
+        const sectionToRemove = document.getElementById(sectionId);
+        if (sectionToRemove) {
+            sectionToRemove.remove();
+        }
+        const buttonToRemove = document.querySelector(`#sidePanel button[onclick="showContent('${sectionId}')"]`);
+        if (buttonToRemove) {
+            buttonToRemove.remove();
+        }
+        const dynamicSections = document.getElementById('dynamicSections');
+        const settingsToRemove = Array.from(dynamicSections.children).find(child => child.textContent.includes(sectionId));
+        if (settingsToRemove) {
+            settingsToRemove.remove();
+        }
+    }
+
+    function generateTable(containerId) {
+        const container = document.getElementById(containerId);
+        
+        const table = document.createElement('table');
+        
+        const headerRow = document.createElement('tr');
+        const headers = ['Time', 'Date', 'Detected Behavior', 'Location', 'Duration'];
+        
+        headers.forEach(headerText => {
+            const header = document.createElement('th');
+            header.textContent = headerText;
+            headerRow.appendChild(header);
+        });
+        
+        table.appendChild(headerRow);
+        
+        mockDatabase.feed1.forEach(record => {
+            const row = document.createElement('tr');
+            
+            const timeCell = document.createElement('td');
+            timeCell.textContent = record.time;
+            row.appendChild(timeCell);
+            
+            const dateCell = document.createElement('td');
+            dateCell.textContent = record.date;
+            row.appendChild(dateCell);
+            
+            const behaviorCell = document.createElement('td');
+            behaviorCell.textContent = record.behavior;
+            row.appendChild(behaviorCell);
+            
+            const locationCell = document.createElement('td');
+            locationCell.textContent = record.location;
+            row.appendChild(locationCell);
+            
+            const durationCell = document.createElement('td');
+            durationCell.textContent = record.duration;
+            row.appendChild(durationCell);
+            
+            table.appendChild(row);
+        });
+        
+        container.innerHTML = '';
+        container.appendChild(table);
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE-edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VISION Login & Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login_style.css') }}">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<body>
+    <div class="wrapper">
+        <!-- LOGIN FORM -->
+        <form id="loginForm">
+            <h1>Login</h1>
+            <div class="inputbox">
+                <input type="text" placeholder="Username" id="loginUser" required>
+                <i class='bx bx-user-circle'></i>
+            </div>
+            <div class="inputbox">
+                <input type="password" placeholder="Password" id="loginPass" required>
+                <i class='bx bxs-lock-alt'></i>
+            </div>
+            <div class="remember-forgot">
+                <label><input type="checkbox"> Remember me</label>
+                <a href="#">Forgot password?</a>
+            </div>
+            <button type="button" class="butn" onclick="login()">Login</button>
+            <div class="register">
+                <p>Don't have an account? <a href="#" onclick="toggleForm()">Register</a></p>
+            </div>
+        </form>
+
+        <!-- REGISTER FORM (Initially Hidden) -->
+        <form id="registerForm" style="display: none;">
+            <h1>Register</h1>
+            <div class="inputbox">
+                <input type="text" placeholder="Username" id="registerUser" required>
+                <i class='bx bx-user-circle'></i>
+            </div>
+            <div class="inputbox">
+                <input type="password" placeholder="Password" id="registerPass" required>
+                <i class='bx bxs-lock-alt'></i>
+            </div>
+            <button type="button" class="butn" onclick="register()">Register</button>
+            <div class="register">
+                <p>Already have an account? <a href="#" onclick="toggleForm()">Login</a></p>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function toggleForm() {
+            var loginForm = document.getElementById("loginForm");
+            var registerForm = document.getElementById("registerForm");
+
+            if (loginForm.style.display === "none") {
+                loginForm.style.display = "block";
+                registerForm.style.display = "none";
+            } else {
+                loginForm.style.display = "none";
+                registerForm.style.display = "block";
+            }
+        }
+
+        function register() {
+            var username = document.getElementById("registerUser").value;
+            var password = document.getElementById("registerPass").value;
+
+            if (username && password) {
+                localStorage.setItem("username", username);
+                localStorage.setItem("password", password);
+                alert("Registration successful! You can now log in.");
+                toggleForm();
+            } else {
+                alert("Please fill in all fields!");
+            }
+        }
+
+        function login() {
+            var username = document.getElementById("loginUser").value;
+            var password = document.getElementById("loginPass").value;
+
+            var storedUser = localStorage.getItem("username");
+            var storedPass = localStorage.getItem("password");
+            fetch('/check_login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({userName: username, userPass: password})
+            }).then(response => response.json())
+            .then(data => {
+                console.log(data.verify_login)
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            })
+
+            if (username === storedUser && password === storedPass) {
+                alert("Logging in!");
+                window.location.href = "{{ url_for('show_main_page') }}"; // Redirect to dashboard
+            } else {
+                alert("Wrong Credentials!");
+            }
+        }
+    </script>
+</body>
+
+</html>

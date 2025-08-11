@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Feed For Research</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: lightgray;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header, footer {
+            background-color: #8B0000;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+        }
+        main {
+            flex: 1;
+            padding: 2rem;
+            text-align: center;
+        }
+        .toggle-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #8B0000;
+            color: white;
+            border: 2px solid white;
+            padding: 0.5rem;
+            cursor: pointer;
+            font-size: 1.5rem;
+            border-radius: 5px;
+            transition: left 0.5s ease-in-out;
+        }
+        .toggle-button::before {
+            content: '\2630';
+        }
+        .side-panel {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100%;
+            background-color: white;
+            border-right: 2px solid #8B0000;
+            transition: left 0.5s ease-in-out;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            visibility: hidden;
+        }
+        .side-panel.open {
+            left: 0;
+            visibility: visible;
+        }
+        .side-panel.open + .toggle-button {
+            left: 270px;
+        }
+        .side-panel button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #8B0000;
+            color: white;
+            border: 2px solid white;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 5px;
+            text-align: left;
+        }
+        .side-panel button:hover {
+            background-color: #600000;
+        }
+        .content-section {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        .settings-panel input, .settings-panel button {
+            margin: 5px;
+            padding: 10px;
+        }
+        footer {
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <header id="pageHeader">
+        <h1>VIDEO FEED</h1>
+    </header>
+    <main>
+        <div id="home" class="content-section active">
+            <h2>Home</h2>
+        </div>
+        <div id="settings" class="content-section">
+            <h2>Settings</h2>
+            <p>Modify live feed names and add new sections.</p>
+            <input type="text" id="feed1Name" placeholder="Live Feed 1 Name">
+            <button onclick="updateFeedName('liveFeed1', 'feed1Name')">Update</button>
+            <br>
+            <input type="text" id="feed2Name" placeholder="Live Feed 2 Name">
+            <button onclick="updateFeedName('liveFeed2', 'feed2Name')">Update</button>
+            <br>
+            <input type="text" id="newSectionName" placeholder="New Section Name">
+            <button onclick="addNewSection()">Add Section</button>
+            <div id="dynamicSections"></div>
+        </div>
+        <div id="liveFeed1" class="content-section">
+            <h2>Live Feed 1</h2>
+            <img src="{{ url_for('video_feed') }}" width="640" height="480">
+            <h2>Prediction: <span id="prediction_label">Loading...</span></h2>
+        </div>
+        <div id="liveFeed2" class="content-section">
+            <h2>Live Feed 2</h2>
+        </div>
+    </main>
+    <button class="toggle-button" id="toggleButton" onclick="toggleSidePanel()"></button>
+    <div class="side-panel" id="sidePanel">
+        <button onclick="showContent('home')">Home</button>
+        <button onclick="showContent('liveFeed1')" id="liveFeed1Btn">Live Feed 1</button>
+        <button onclick="showContent('liveFeed2')" id="liveFeed2Btn">Live Feed 2</button>
+        <button onclick="showContent('settings')">Settings</button>
+    </div>
+    <footer>
+        <p>Dee Lishus</p>
+    </footer>
+    <script>
+        const socket = io();
+
+        socket.on('prediction_update', function(data) {
+            document.getElementById('prediction_label').innerText = data.label;
+        });
+        
+        function toggleSidePanel() {
+            const sidePanel = document.getElementById('sidePanel');
+            const toggleButton = document.getElementById('toggleButton');
+            sidePanel.classList.toggle('open');
+            if (sidePanel.classList.contains('open')) {
+                toggleButton.style.left = '270px';
+            } else {
+                toggleButton.style.left = '20px';
+            }
+        }
+
+        function showContent(sectionId) {
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => section.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            toggleSidePanel();
+        }
+
+        function updateFeedName(feedId, inputId) {
+            const newName = document.getElementById(inputId).value;
+            if (newName) {
+                document.getElementById(feedId).querySelector('h2').innerText = newName;
+                document.getElementById(feedId + 'Btn').innerText = newName;
+            }
+        }
+
+        function addNewSection() {
+            const newSectionName = document.getElementById('newSectionName').value;
+            if (newSectionName) {
+                const newSectionId = newSectionName.replace(/\s+/g, '');
+                
+                // Add the new section to the main content
+                const newSection = document.createElement('div');
+                newSection.classList.add('content-section');
+                newSection.id = newSectionId;
+                newSection.innerHTML = `<h2>${newSectionName}</h2><button onclick="removeSection('${newSectionId}')">Delete</button>`;
+                document.querySelector('main').appendChild(newSection);
+
+                // Add the button for the new section to the side panel
+                const newButton = document.createElement('button');
+                newButton.innerText = newSectionName;
+                newButton.onclick = function() { showContent(newSectionId); };
+                document.getElementById('sidePanel').insertBefore(newButton, document.querySelector('#sidePanel button:last-child'));
+
+                // Add the new section to the settings panel
+                const settingsSection = document.createElement('div');
+                settingsSection.innerHTML = `<p>${newSectionName} <button onclick="removeSection('${newSectionId}')">Delete</button></p>`;
+                document.getElementById('dynamicSections').appendChild(settingsSection);
+            }
+        }
+
+        function removeSection(sectionId) {
+            // Remove the section from the main content
+            const sectionToRemove = document.getElementById(sectionId);
+            if (sectionToRemove) {
+                sectionToRemove.remove();
+            }
+
+            // Remove the button from the side panel
+            const buttonToRemove = document.querySelector(`#sidePanel button[onclick="showContent('${sectionId}')"]`);
+            if (buttonToRemove) {
+                buttonToRemove.remove();
+            }
+
+            // Remove the section from the settings panel
+            const dynamicSections = document.getElementById('dynamicSections');
+            const settingsToRemove = Array.from(dynamicSections.children).find(child => child.textContent.includes(sectionId));
+            if (settingsToRemove) {
+                settingsToRemove.remove();
+            }
+        }
+    </script>
+</body>
+</html>

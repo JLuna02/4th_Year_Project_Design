@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V.I.S.I.O.N FEED</title>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+<link rel="icon" type="image/png" href="favicon.ico">
+</head>
+<body>
+    <!--Container for the navigation-->
+    <div class="container">
+        <div class="navigation">
+            <ul>
+                <li>
+                    <a href="#">
+                        <span class="icon"><ion-icon name="eye-outline"></ion-icon></span>
+                        <span class="title">V.I.S.I.O.N</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#DASHBOARD" onclick="showSection('dashboard')">
+                        <span class="icon"><ion-icon name="laptop-outline"></ion-icon></span>
+                        <span class="title">DASHBOARD</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#REVIEW" onclick="showSection('review')">
+                        <span class="icon"><ion-icon name="laptop-outline"></ion-icon></span>
+                        <span class="title">REVIEW</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#EMERGENCY" onclick="showSection('emergency')">
+                        <span class="icon"><ion-icon name="warning-outline"></ion-icon></span>
+                        <span class="title">EMERGENCY</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#VIDEOFILE" onclick="showSection('video')">
+                        <span class="icon"><ion-icon name="videocam-outline"></ion-icon></span>
+                        <span class="title">VIDEO FILE</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#ABOUTUS" onclick="showSection('about')">
+                        <span class="icon"><ion-icon name="help-circle-outline"></ion-icon></span>
+                        <span class="title">ABOUT US</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <!--Side bar panel-->
+        <div class="main">
+            <div class="tophead">
+                <div class="togglebar"><ion-icon name="menu-outline"></ion-icon></div>
+                <!-- Search Bar (Initially Hidden) -->
+                <div class="searchbar" id="videoSearchBar" style="display: none;">
+                    <label>
+                        <input type="text" placeholder="Search video files...">
+                        <ion-icon name="search-outline"></ion-icon>
+                    </label>
+                </div>
+            </div>
+            
+            <!--Dashboard nav-->
+            <div id="dashboard" class="section">
+                <div class="cardContainer">
+                    <div class="card" onclick="openIncidentModal('Violence')">
+                        <div>
+                            <div class="numbers" id="totalViolence">Total Count</div>  
+                            <div class="cardname">Violence: <span id="countViolence">0</span></div>
+                        </div>
+                        <div class="iconBOX"><ion-icon name="bandage-outline"></ion-icon></div>
+                    </div>
+                    
+                    <div class="card" onclick="openIncidentModal('Panic')">
+                        <div>
+                            <div class="numbers" id="totalPanic">Total Count</div>  
+                            <div class="cardname">Panic: <span id="countPanic">0</span></div>
+                        </div>
+                        <div class="iconBOX"><ion-icon name="megaphone-outline">0</ion-icon></div>
+                    </div>
+                    
+                    <div class="card" onclick="openIncidentModal('Faint')">
+                        <div>
+                            <div class="numbers" id="totalFaint">Total Count</div>  
+                            <div class="cardname">Faint: <span id="countFaint">0</span></div>
+                        </div>
+                        <div class="iconBOX"><ion-icon name="fitness-outline"></ion-icon></div>
+                    </div>                    
+                </div>
+                <div class="videoContainer">
+                    <h2>Live Video Feed</h2>
+                    <img id="videoSource" src="{{ url_for('video_feed') }}" alt="Live Feed">
+                    <h2></h2>
+                    <button onclick="start_record_route()">Start Recording</button>
+                    <button onclick="triggerRoute()">Stop Recording</button>
+                </div>
+
+                <!-- Incident History Table (Only in Dashboard) -->
+                <div class="incident-history">
+                    <h3>Recent Incident</h3>
+                    <table border="1" id="incidentHistoryTable">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Incident Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incidentHistoryBody">
+                            <!-- Incident History rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Incident Modal (Popup Window) -->
+            <div id="incidentModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeIncidentModal()">&times;</span>
+                    <h2 id="incidentTitle">Video Files</h2>
+                    <div class="video-list-container">
+                        <table border="1">
+                            <thead>
+                                <tr>
+                                    <th>File Name</th>
+                                    <th>Date & Time</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="incidentTableBody">
+                                <!-- Data will be inserted dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+                        <!-- Video Player Modal -->
+            <div id="videoModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeVideoModal()">&times;</span>
+                    <h2>VISION PLAYER</h2>
+                    <img id="videoReplay" src="" alt="Streaming video" width="1000px" height="500px">
+                    <div class="video-controls">
+                        <button onclick="pauseVideo()">Pause</button>
+                        <button onclick="resumeVideo()">Resume</button>
+                    </div>
+                </div>
+            </div>
+
+            <!--Review Section-->
+            <div id="review" class="section" style="display: none;">
+                <div class="videoContainer2">
+                    <h2>Video Player</h2>
+                    <img id="videoPlayerreview" src="" alt="Streaming video", width="1000px" height="500px">
+                </div>
+
+                <div class="upload-container">
+                    <h3>Upload a New Video</h3>
+                    <input type="file" id="videoUpload">
+                    <button id="uploadBtn" onclick="ShowReview()">Upload Video</button>
+                </div>
+
+                <!--
+                <div class="video-table-container">
+                    <h3>Uploaded Videos</h3>
+                    <table border="1" id="videoTable2">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Date Uploaded</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="videoTableBody">
+                            
+                        </tbody>
+                    </table>
+                </div>
+                -->
+            </div>
+
+            <!--Emergency nav-->
+            <div id="emergency" class="section" style="display: none;">
+                <div class="contact-container">
+                    <h2>Emergency Hotlines</h2>
+                    <table border="1" id="emergencyTable">
+                        <tr>
+                            <th>Agency</th>
+                            <th>Hotline</th>
+                            <th>Action</th>
+                        </tr>
+                        <tr>
+                            <td>Philippine National Police (PNP)</td>
+                            <td>117 / (02) 8722-0650</td>
+                            <td><button onclick="editRow(this)">Edit</button>
+                                <button onclick="deleteRow(this)">Delete</button></td>
+                        </tr>
+                        <tr>
+                            <td>Bureau of Fire Protection (BFP)</td>
+                            <td>(02) 8426-0219 / (02) 8426-0246</td>
+                            <td><button onclick="editRow(this)">Edit</button>
+                                <button onclick="deleteRow(this)">Delete</button></td>
+                        </tr>
+                        <tr>
+                            <td>Philippine Coast Guard</td>
+                            <td>(02) 8527-3877 to 81</td>
+                            <td><button onclick="editRow(this)">Edit</button>
+                                <button onclick="deleteRow(this)">Delete</button></td>
+                        </tr>
+                        <tr>
+                            <td>Red Cross</td>
+                            <td>143 / (02) 8790-2300</td>
+                            <td><button onclick="editRow(this)">Edit</button>
+                                <button onclick="deleteRow(this)">Delete</button></td>
+                        </tr>
+                    </table>
+                    <!-- Add Row Button -->
+                    <button onclick="addEmergencyRow()" style="margin-top: 10px;">Add Row</button>
+                </div>
+            </div>
+            <!--About us nav-->
+            <div id="about" class="section" style="display: none;">
+                <div class="group-title">
+                    <h2>GROUP 2 - 4CPE A</h2>
+                </div>
+                <div class="about-container">
+                    <div class="team-member">
+                        <div class="profile-pic"></div>
+                        <div class="info">
+                            <h3>LEADER</h3>
+                            <p>Jed Erion De Luna</p>
+                        </div>
+                    </div>
+                    <div class="team-member">
+                        <div class="profile-pic"></div>
+                        <div class="info">
+                            <h3>MEMBER</h3>
+                            <p>JOHANN-ERL SALVADOR LAPUZ</p>
+                            <p>Web Programmer-Backend</p>
+                        </div>
+                    </div>
+                    <div class="team-member">
+                        <div class="profile-pic"></div>
+                        <div class="info">
+                            <h3>MEMBER</h3>
+                            <p>NETHOUIE LJOY ANGELO RAGUDO ORBIDA</p>
+                            <p>Web Programmer-Frontend</p>
+                        </div>
+                    </div>
+                    <div class="team-member">
+                        <div class="profile-pic"></div>
+                        <div class="info">
+                            <h3>MEMBER</h3>
+                            <p>JOHN LEXTER DANSECO PULIDO</p>
+                            <p>Documenation/Dataset</p>
+                        </div>
+                    </div>
+                    <div class="team-member">
+                        <div class="profile-pic"></div>
+                        <div class="info">
+                            <h3>MEMBER</h3>
+                            <p>JOSEPH SALADINO SARDOMA</p>
+                            <p>Documenation/Dataset</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Notification Container -->
+            <div id="notification-container" class="notification-container"></div>
+            <!-- Video File Section -->
+            <div id="video" class="section" style="display: none;">
+                <div class="videoContainer">
+                    <h2>Video Files</h2>
+                    <table border="1" id="videoTable">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Date Uploaded</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Video file entries will be dynamically inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+    <!-- For module support -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/ionicons@5.5.4/dist/ionicons/ionicons.esm.js"></script>
+
+<!-- For older browser support -->
+<script nomodule src="https://cdn.jsdelivr.net/npm/ionicons@5.5.4/dist/ionicons/ionicons.js"></script>
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
+<script src="{{ url_for('static', filename='mainweb.js') }}"></script>
+
+</body>
+</html>

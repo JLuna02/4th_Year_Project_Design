@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V.I.S.I.O.N FEED</title>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main_page_style.css') }}">
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="navigation">
+            <ul>
+                <li>
+                    <a href="#">
+                        <span class="icon"><ion-icon name="eye-outline"></ion-icon></span>
+                        <span class="title">V.I.S.I.O.N</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#HOME" onclick="showSection('home')">
+                        <span class="icon"><ion-icon name="home-outline"></ion-icon></span>
+                        <span class="title">HOME</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#DASHBOARD" onclick="showSection('dashboard')">
+                        <span class="icon"><ion-icon name="laptop-outline"></ion-icon></span>
+                        <span class="title">DASHBOARD</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#EMERGENCY" onclick="showSection('emergency')">
+                        <span class="icon"><ion-icon name="warning-outline"></ion-icon></span>
+                        <span class="title">EMERGENCY</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#ABOUT US" onclick="showSection('about us')">
+                        <span class="icon"><ion-icon name="help-circle-outline"></ion-icon></span>
+                        <span class="title">ABOUT US</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#SIGN OUT" onclick="showSection('sign out')">
+                        <span class="icon"><ion-icon name="log-out-outline"></ion-icon></span>
+                        <span class="title">SIGN OUT</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <!--Main web-->
+        <div class="main">
+            <div class="tophead">
+                <!--toggle bar-->
+                <div class="togglebar"><ion-icon name="menu-outline"></ion-icon></div>
+                <!--search bar-->
+                <div class="searchbar">
+                    <label>
+                        <input type="text" placeholder="Search">
+                        <ion-icon name="search-outline"></ion-icon>
+                    </label>
+                </div>
+            </div>
+            <!--Cards-->
+            <div class="cardContainer">
+                <div class="card">
+                    <div>
+                        <!--Analyst count-->
+                        <div class="numbers">Total Count</div>
+                        <div class="cardname">Violence</div>
+                    </div>
+                    <div class="iconBOX"><ion-icon name="bandage-outline"></ion-icon></div>
+                </div>
+                <div class="card">
+                    <div>
+                        <div class="numbers">Total Count</div>
+                        <div class="cardname">Panic</div>
+                    </div>
+                    <div class="iconBOX"><ion-icon name="megaphone-outline"></ion-icon></ion-icon></div>
+                </div>
+                <div class="card">
+                    <div>
+                        <div class="numbers">Total Count</div>
+                        <div class="cardname">Faint</div>
+                    </div>
+                    <div class="iconBOX"><ion-icon name="fitness-outline"></ion-icon></ion-icon></div>
+                </div>
+            </div>
+            <!--Video live feed-->
+            <div class="videoContainer">
+                <h2>Live Feed</h2>
+                <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Live Video Feed">
+                <h2>Prediction: <span id="prediction_label">Loading...</span></h2>
+                <button onclick="start_record_route()">Start Recording</button>
+                <button onclick="triggerRoute()">Stop Recording</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+    <script>
+        //toggle side bar
+        let togglebar = document.querySelector('.togglebar');
+        let navigation = document.querySelector('.navigation');
+        let main = document.querySelector('.main');
+
+        const socket = io();
+
+        socket.on('prediction_update', function(data) {
+            document.getElementById('prediction_label').innerText = data.label;
+        });
+
+
+        togglebar.onclick = function(){
+            navigation.classList.toggle('active');
+            main.classList.toggle('active');
+        }
+        // adding a hover class in selected div list item
+        let list = document.querySelectorAll('.navigation li');
+        function activeLink(){
+            list.forEach((item)=>
+            item.classList.remove('hovered'));
+            this.classList.add('hovered');
+        }
+        list.forEach((item)=>
+        item.addEventListener('mouseover', activeLink));
+
+        function start_record_route() {
+            fetch('/api/start_recording', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);  // Show the response message
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function triggerRoute() {
+            fetch('/api/stop_recording', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);  // Show the response message
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>"
