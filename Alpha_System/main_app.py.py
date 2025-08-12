@@ -12,7 +12,6 @@ import sqlite3
 import os
 import json
 from flask_cors import CORS
-import threading as thread
 #gst_pipeline = 'nvarguscamerasrc ! video/x-raw(memory:NVMM), format=NV12, width=640, height=480, framerate=30/1 ! nvvidconv ! video/x-raw, format=BGRx, width=640, height=480 ! videoconvert ! appsink'
 
 # xcamera = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
